@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Dialogue Generator</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, 0.35), transparent 55%),
+        radial-gradient(ellipse at 85% 100%, rgba(168, 61, 255, 0.22), transparent 50%),
+        #0c0920;
+      color: #ddd0ff;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 64px 16px;
+      text-align: center;
+    }
+
+    main { width: 100%; max-width: 720px; }
+
+    h1 {
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 2rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #c79bff;
+    }
+
+    .subtitle {
+      margin: 0 auto 32px;
+      max-width: 520px;
+      color: #a99bd1;
+      line-height: 1.6;
+    }
+
+    button {
+      background: #7c3aed;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 13px 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    button:hover { background: #9255ff; }
+    button:focus-visible { outline: 3px solid #e3d1ff; outline-offset: 3px; }
+    button:disabled { background: #3b2a6e; color: #a99bd1; cursor: wait; }
+
+    #status {
+      min-height: 24px;
+      margin-top: 14px;
+      color: #a99bd1;
+      font-size: 0.95rem;
+    }
+
+    #output {
+      margin-top: 14px;
+      background: rgba(20, 14, 48, 0.85);
+      color: #e9e0ff;
+      border: 1px solid #3b2a6e;
+      border-radius: 4px;
+      padding: 32px 36px;
+      min-height: 220px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    #output.empty { color: #8577b3; }
+    #output.error { color: #ff8fa8; }
+
+    .about {
+      margin: 32px auto 0;
+      max-width: 560px;
+      color: #a99bd1;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .dots::after {
+        content: "";
+        animation: dots 1.2s steps(4, end) infinite;
+      }
+      @keyframes dots {
+        0% { content: ""; }
+        25% { content: "."; }
+        50% { content: ".."; }
+        75% { content: "..."; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Movie Dialogue Generator</h1>
+    <p class="subtitle">
+      A small GPT model that learned from movie scripts and writes its own dialogue.
+    </p>
+
+    <button id="generate-btn" onclick="generateText()">Generate</button>
+    <div id="status" role="status"></div>
+
+    <div id="output" class="empty">Your generated dialogue will show up here.</div>
+
+    <p class="about">
+      Trained on about 300,000 lines of cleaned movie dialogue. It writes one character
+      at a time by predicting what comes next. Built with nanoGPT, PyTorch, and Flask.
+    </p>
+  </main>
+
+  <script>
+    async function generateText() {
+      const button = document.getElementById("generate-btn");
+      const status = document.getElementById("status");
+      const output = document.getElementById("output");
+
+      button.disabled = true;
+      status.innerHTML = 'Writing<span class="dots"></span>';
+      output.className = "empty";
+      output.textContent = "The model is thinking. This takes a few seconds.";
+
+      try {
+        const response = await fetch("/generate");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Something went wrong.");
+        }
+
+        output.className = "";
+        output.textContent = data.text;
+        status.textContent = "";
+      } catch (error) {
+        output.className = "error";
+        output.textContent = error.message;
+        status.textContent = "";
+      } finally {
+        button.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
